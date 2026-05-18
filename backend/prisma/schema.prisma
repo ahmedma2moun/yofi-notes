@@ -1,0 +1,31 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Device {
+  id        String   @id @default(cuid())
+  fcmToken  String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model HealthEvent {
+  id         String    @id @default(cuid())
+  type       EventType
+  childName  String
+  notes      String?
+  occurredAt DateTime  @default(now())
+  createdAt  DateTime  @default(now())
+  payload    Json?
+}
+
+enum EventType {
+  MEDICINE
+  TEMPERATURE
+  CUSTOM
+}
