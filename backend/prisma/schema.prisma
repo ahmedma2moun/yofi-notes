@@ -7,13 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Device {
-  id        String   @id @default(cuid())
-  fcmToken  String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
 model HealthEvent {
   id         String    @id @default(cuid())
   type       EventType

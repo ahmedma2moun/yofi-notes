@@ -2,6 +2,5 @@ platform :ios, '16.0'
 use_frameworks!
 
 target 'KidsHealthTracker' do
-  pod 'FirebaseMessaging'
-  pod 'FirebaseCore'
+  # No external pods required
 end

@@ -28,15 +28,6 @@ actor APIService {
     // Replace with your server's IP/hostname before building
     private let baseURL = URL(string: "http://localhost:3000")!
 
-    func registerDevice(fcmToken: String) async {
-        let url = baseURL.appendingPathComponent("devices/register")
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try? JSONEncoder().encode(["fcmToken": fcmToken])
-        _ = try? await URLSession.shared.data(for: request)
-    }
-
     func logEvent(_ event: CreateEventRequest) async throws -> HealthEvent {
         let url = baseURL.appendingPathComponent("events")
         var request = URLRequest(url: url)

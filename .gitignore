@@ -2,10 +2,6 @@
 backend/.env
 backend/.env.local
 
-# Firebase credentials — download from console, never commit
-ios/KidsHealthTracker/GoogleService-Info.plist
-firebase-adminsdk*.json
-
 # Node
 node_modules/
 backend/dist/
