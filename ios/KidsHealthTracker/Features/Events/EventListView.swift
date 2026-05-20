@@ -3,6 +3,8 @@ import SwiftUI
 struct EventListView: View {
     @StateObject private var viewModel = EventViewModel()
     @State private var showAddEvent = false
+    @State private var editingEvent: HealthEvent?
+    @State private var eventToDelete: HealthEvent?
     @State private var selectedType: EventType = EventType.allCases[0]
 
     private var filteredEvents: [HealthEvent] {
@@ -42,7 +44,22 @@ struct EventListView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     List(filteredEvents) { event in
-                        EventRowView(event: event)
+                        HStack {
+                            EventRowView(event: event)
+                            Menu {
+                                Button { editingEvent = event } label: {
+                                    Label("Edit", systemImage: "pencil")
+                                }
+                                Button(role: .destructive) { eventToDelete = event } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                            } label: {
+                                Image(systemName: "ellipsis")
+                                    .foregroundStyle(.secondary)
+                                    .padding(.vertical, 8)
+                                    .padding(.leading, 8)
+                            }
+                        }
                     }
                     .refreshable { await viewModel.loadEvents() }
                 }
@@ -57,6 +74,21 @@ struct EventListView: View {
             }
             .sheet(isPresented: $showAddEvent) {
                 AddEventView(viewModel: viewModel)
+            }
+            .sheet(item: $editingEvent) { event in
+                AddEventView(viewModel: viewModel, editingEvent: event)
+            }
+            .confirmationDialog(
+                "Delete Event?",
+                isPresented: Binding(get: { eventToDelete != nil }, set: { if !$0 { eventToDelete = nil } }),
+                presenting: eventToDelete
+            ) { event in
+                Button("Delete", role: .destructive) {
+                    Task { await viewModel.deleteEvent(id: event.id) }
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: { _ in
+                Text("This action cannot be undone.")
             }
             .alert("Error", isPresented: Binding(
                 get: { viewModel.errorMessage != nil },

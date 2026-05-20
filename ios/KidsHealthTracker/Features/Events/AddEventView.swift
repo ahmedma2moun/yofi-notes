@@ -4,29 +4,86 @@ struct AddEventView: View {
     @ObservedObject var viewModel: EventViewModel
     @Environment(\.dismiss) private var dismiss
 
-    @State private var selectedType: EventType = .medicine
+    let editingEvent: HealthEvent?
+
+    @State private var selectedType: EventType
     private let childName = "Youssef"
-    @State private var notes = ""
+    @State private var notes: String
 
     // Time
-    @State private var useCustomTime = false
-    @State private var customTime = Date()
+    @State private var useCustomTime: Bool
+    @State private var customTime: Date
 
     // Medicine
-    @State private var medicineName = ""
-    @State private var doseMg = ""
-    @State private var unit = "mg"
+    @State private var medicineName: String
+    @State private var doseMg: String
+    @State private var unit: String
 
     // Temperature
-    @State private var tempValue = ""
-    @State private var tempMethod = "oral"
+    @State private var tempValue: String
+    @State private var tempMethod: String
 
     // Custom
-    @State private var customLabel = ""
+    @State private var customLabel: String
 
     @State private var isSaving = false
 
     private static let cairo = TimeZone(identifier: "Africa/Cairo")!
+
+    init(viewModel: EventViewModel, editingEvent: HealthEvent? = nil) {
+        _viewModel = ObservedObject(wrappedValue: viewModel)
+        self.editingEvent = editingEvent
+
+        if let e = editingEvent {
+            _selectedType = State(initialValue: e.type)
+            _notes = State(initialValue: e.notes ?? "")
+            _useCustomTime = State(initialValue: true)
+            _customTime = State(initialValue: e.occurredAt)
+
+            switch e.type {
+            case .medicine:
+                _medicineName = State(initialValue: (e.payload?["medicineName"]?.value as? String) ?? "")
+                let dose = e.payload?["doseMg"]?.value
+                let doseStr: String
+                if let d = dose as? Double {
+                    doseStr = d == Double(Int(d)) ? String(Int(d)) : String(d)
+                } else {
+                    doseStr = ""
+                }
+                _doseMg = State(initialValue: doseStr)
+                _unit = State(initialValue: (e.payload?["unit"]?.value as? String) ?? "mg")
+                _tempValue = State(initialValue: "")
+                _tempMethod = State(initialValue: "oral")
+                _customLabel = State(initialValue: "")
+            case .temperature:
+                _medicineName = State(initialValue: "")
+                _doseMg = State(initialValue: "")
+                _unit = State(initialValue: "mg")
+                let val = e.payload?["valueCelsius"]?.value
+                _tempValue = State(initialValue: val.flatMap { $0 as? Double }.map { String($0) } ?? "")
+                _tempMethod = State(initialValue: (e.payload?["method"]?.value as? String) ?? "oral")
+                _customLabel = State(initialValue: "")
+            case .custom:
+                _medicineName = State(initialValue: "")
+                _doseMg = State(initialValue: "")
+                _unit = State(initialValue: "mg")
+                _tempValue = State(initialValue: "")
+                _tempMethod = State(initialValue: "oral")
+                _customLabel = State(initialValue: (e.payload?["label"]?.value as? String) ?? "")
+            }
+        } else {
+            _selectedType = State(initialValue: .medicine)
+            _notes = State(initialValue: "")
+            _useCustomTime = State(initialValue: false)
+            _customTime = State(initialValue: Date())
+            _medicineName = State(initialValue: "")
+            _doseMg = State(initialValue: "")
+            _unit = State(initialValue: "mg")
+            _tempValue = State(initialValue: "")
+            _tempMethod = State(initialValue: "oral")
+            _customLabel = State(initialValue: "")
+        }
+    }
 
     var body: some View {
         NavigationStack {
@@ -64,7 +121,7 @@ struct AddEventView: View {
                         .lineLimit(3...6)
                 }
             }
-            .navigationTitle("Log Event")
+            .navigationTitle(editingEvent == nil ? "Log Event" : "Edit Event")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -117,13 +174,24 @@ struct AddEventView: View {
     private func save() {
         isSaving = true
         Task {
-            await viewModel.logEvent(
-                type: selectedType,
-                childName: childName,
-                notes: notes.isEmpty ? nil : notes,
-                payload: buildPayload(),
-                occurredAt: occurredAt
-            )
+            if let event = editingEvent {
+                await viewModel.updateEvent(
+                    id: event.id,
+                    type: selectedType,
+                    childName: childName,
+                    notes: notes.isEmpty ? nil : notes,
+                    payload: buildPayload(),
+                    occurredAt: occurredAt
+                )
+            } else {
+                await viewModel.logEvent(
+                    type: selectedType,
+                    childName: childName,
+                    notes: notes.isEmpty ? nil : notes,
+                    payload: buildPayload(),
+                    occurredAt: occurredAt
+                )
+            }
             isSaving = false
             dismiss()
         }

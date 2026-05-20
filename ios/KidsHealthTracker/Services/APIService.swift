@@ -51,4 +51,27 @@ actor APIService {
         decoder.dateDecodingStrategy = .iso8601
         return try decoder.decode([HealthEvent].self, from: data)
     }
+
+    func updateEvent(id: String, _ event: CreateEventRequest) async throws -> HealthEvent {
+        let url = baseURL.appendingPathComponent("events/\(id)")
+        var request = URLRequest(url: url)
+        request.httpMethod = "PATCH"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        request.httpBody = try encoder.encode(event)
+
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return try decoder.decode(HealthEvent.self, from: data)
+    }
+
+    func deleteEvent(id: String) async throws {
+        let url = baseURL.appendingPathComponent("events/\(id)")
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        _ = try await URLSession.shared.data(for: request)
+    }
 }
