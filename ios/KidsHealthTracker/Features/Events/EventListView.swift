@@ -6,9 +6,51 @@ struct EventListView: View {
     @State private var editingEvent: HealthEvent?
     @State private var eventToDelete: HealthEvent?
     @State private var selectedType: EventType = EventType.allCases[0]
+    @State private var expandedDays: Set<String> = {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        f.timeZone = TimeZone(identifier: "Africa/Cairo")
+        return [f.string(from: Date())]
+    }()
+
+    private static let daySectionFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        f.timeZone = TimeZone(identifier: "Africa/Cairo")
+        return f
+    }()
+
+    private static let dayDisplayFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateStyle = .long
+        f.timeStyle = .none
+        f.timeZone = TimeZone(identifier: "Africa/Cairo")
+        return f
+    }()
 
     private var filteredEvents: [HealthEvent] {
         viewModel.events.filter { $0.type == selectedType }
+    }
+
+    private var eventsByDay: [(dayKey: String, date: Date, events: [HealthEvent])] {
+        var cal = Calendar(identifier: .gregorian)
+        cal.timeZone = TimeZone(identifier: "Africa/Cairo")!
+        let grouped = Dictionary(grouping: filteredEvents) { cal.startOfDay(for: $0.occurredAt) }
+        return grouped
+            .sorted { $0.key > $1.key }
+            .map { (day, events) in
+                (dayKey: Self.daySectionFormatter.string(from: day),
+                 date: day,
+                 events: events.sorted { $0.occurredAt > $1.occurredAt })
+            }
+    }
+
+    private func dayLabel(for date: Date) -> String {
+        var cal = Calendar(identifier: .gregorian)
+        cal.timeZone = TimeZone(identifier: "Africa/Cairo")!
+        if cal.isDateInToday(date) { return "Today" }
+        if cal.isDateInYesterday(date) { return "Yesterday" }
+        return Self.dayDisplayFormatter.string(from: date)
     }
 
     var body: some View {
@@ -43,21 +85,50 @@ struct EventListView: View {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
-                    List(filteredEvents) { event in
-                        HStack {
-                            EventRowView(event: event)
-                            Menu {
-                                Button { editingEvent = event } label: {
-                                    Label("Edit", systemImage: "pencil")
+                    List {
+                        ForEach(eventsByDay, id: \.dayKey) { group in
+                            Section {
+                                if expandedDays.contains(group.dayKey) {
+                                    ForEach(group.events) { event in
+                                        HStack {
+                                            EventRowView(event: event)
+                                            Menu {
+                                                Button { editingEvent = event } label: {
+                                                    Label("Edit", systemImage: "pencil")
+                                                }
+                                                Button(role: .destructive) { eventToDelete = event } label: {
+                                                    Label("Delete", systemImage: "trash")
+                                                }
+                                            } label: {
+                                                Image(systemName: "ellipsis")
+                                                    .foregroundStyle(.secondary)
+                                                    .padding(.vertical, 8)
+                                                    .padding(.leading, 8)
+                                            }
+                                        }
+                                    }
                                 }
-                                Button(role: .destructive) { eventToDelete = event } label: {
-                                    Label("Delete", systemImage: "trash")
+                            } header: {
+                                HStack {
+                                    Text(dayLabel(for: group.date))
+                                        .font(.headline)
+                                        .foregroundStyle(.primary)
+                                        .textCase(nil)
+                                    Spacer()
+                                    Image(systemName: expandedDays.contains(group.dayKey) ? "chevron.up" : "chevron.down")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
                                 }
-                            } label: {
-                                Image(systemName: "ellipsis")
-                                    .foregroundStyle(.secondary)
-                                    .padding(.vertical, 8)
-                                    .padding(.leading, 8)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        if expandedDays.contains(group.dayKey) {
+                                            expandedDays.remove(group.dayKey)
+                                        } else {
+                                            expandedDays.insert(group.dayKey)
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
