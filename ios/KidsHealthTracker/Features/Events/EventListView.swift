@@ -3,20 +3,45 @@ import SwiftUI
 struct EventListView: View {
     @StateObject private var viewModel = EventViewModel()
     @State private var showAddEvent = false
+    @State private var selectedType: EventType = EventType.allCases[0]
+
+    private var filteredEvents: [HealthEvent] {
+        viewModel.events.filter { $0.type == selectedType }
+    }
 
     var body: some View {
         NavigationStack {
-            Group {
+            VStack(spacing: 0) {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(EventType.allCases, id: \.self) { type in
+                            FilterChip(label: type.displayName, isSelected: selectedType == type) {
+                                selectedType = type
+                            }
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 10)
+                }
+                .background(.bar)
+
                 if viewModel.isLoading && viewModel.events.isEmpty {
                     ProgressView("Loading…")
-                } else if viewModel.events.isEmpty {
-                    ContentUnavailableView(
-                        "No Events",
-                        systemImage: "heart.text.clipboard",
-                        description: Text("Tap + to log a health event")
-                    )
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if filteredEvents.isEmpty {
+                    VStack(spacing: 12) {
+                        Image(systemName: "tray")
+                            .font(.system(size: 48))
+                            .foregroundStyle(.secondary)
+                        Text("No Events")
+                            .font(.headline)
+                        Text("No \(selectedType.displayName) events yet")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
-                    List(viewModel.events) { event in
+                    List(filteredEvents) { event in
                         EventRowView(event: event)
                     }
                     .refreshable { await viewModel.loadEvents() }
@@ -46,45 +71,102 @@ struct EventListView: View {
     }
 }
 
+private struct FilterChip: View {
+    let label: String
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(label)
+                .font(.subheadline.weight(.medium))
+                .padding(.horizontal, 14)
+                .padding(.vertical, 7)
+                .background(isSelected ? Color.accentColor : Color(.secondarySystemBackground))
+                .foregroundStyle(isSelected ? Color.white : Color.primary)
+                .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
+    }
+}
+
 struct EventRowView: View {
     let event: HealthEvent
+    @State private var expanded = false
 
     private static let dateFormatter: DateFormatter = {
         let f = DateFormatter()
         f.dateStyle = .medium
         f.timeStyle = .short
+        f.timeZone = TimeZone(identifier: "Africa/Cairo")
         return f
     }()
 
     var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: event.type.systemImage)
-                .font(.title2)
-                .foregroundStyle(iconColor)
-                .frame(width: 36)
+        VStack(alignment: .leading, spacing: 0) {
+            Button {
+                guard event.notes != nil else { return }
+                withAnimation(.easeInOut(duration: 0.2)) { expanded.toggle() }
+            } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: event.type.systemImage)
+                        .font(.title2)
+                        .foregroundStyle(iconColor)
+                        .frame(width: 36)
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text(event.childName)
-                    .font(.headline)
-                Text(event.type.displayName)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(payloadSummary)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                        Text(Self.dateFormatter.string(from: event.occurredAt))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer()
+
+                    if event.notes != nil {
+                        Image(systemName: expanded ? "chevron.up" : "chevron.down")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .padding(.vertical, 4)
+            }
+            .buttonStyle(.plain)
+
+            if expanded, let notes = event.notes {
+                Text(notes)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-                if let notes = event.notes {
-                    Text(notes)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
+                    .padding(.leading, 48)
+                    .padding(.top, 6)
+                    .padding(.bottom, 4)
             }
-
-            Spacer()
-
-            Text(Self.dateFormatter.string(from: event.occurredAt))
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.trailing)
         }
-        .padding(.vertical, 4)
+    }
+
+    private var payloadSummary: String {
+        let p = event.payload
+        switch event.type {
+        case .medicine:
+            let name = (p?["medicineName"]?.value as? String) ?? ""
+            let dose = p?["doseMg"]?.value
+            let unit = (p?["unit"]?.value as? String) ?? ""
+            if let d = dose as? Double, d > 0 {
+                return "\(name.isEmpty ? "Medicine" : name) — \(Int(d) == Int(exactly: d) ? String(Int(d)) : String(d)) \(unit)"
+            }
+            return name.isEmpty ? "Medicine" : name
+        case .temperature:
+            let val = p?["valueCelsius"]?.value
+            let method = (p?["method"]?.value as? String) ?? ""
+            if let v = val as? Double {
+                return "\(v)°C (\(method.capitalized))"
+            }
+            return "Temperature"
+        case .custom:
+            return (p?["label"]?.value as? String) ?? "Custom Event"
+        }
     }
 
     private var iconColor: Color {

@@ -11,11 +11,17 @@ struct HistoryView: View {
                 if viewModel.isLoading && viewModel.events.isEmpty {
                     ProgressView("Loading…")
                 } else if viewModel.events.isEmpty {
-                    ContentUnavailableView(
-                        "No History",
-                        systemImage: "clock.arrow.circlepath",
-                        description: Text("Events you log will appear here")
-                    )
+                    VStack(spacing: 12) {
+                        Image(systemName: "clock.arrow.circlepath")
+                            .font(.system(size: 48))
+                            .foregroundStyle(.secondary)
+                        Text("No History")
+                            .font(.headline)
+                        Text("Events you log will appear here")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     List {
                         ForEach(groupedEvents, id: \.0) { dateString, events in
@@ -38,6 +44,7 @@ struct HistoryView: View {
         let formatter = DateFormatter()
         formatter.dateStyle = .full
         formatter.timeStyle = .none
+        formatter.timeZone = TimeZone(identifier: "Africa/Cairo")
 
         let grouped = Dictionary(grouping: viewModel.events) { event in
             formatter.string(from: event.occurredAt)

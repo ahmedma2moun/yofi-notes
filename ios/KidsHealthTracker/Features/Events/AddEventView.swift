@@ -5,8 +5,12 @@ struct AddEventView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var selectedType: EventType = .medicine
-    @State private var childName = ""
+    private let childName = "Youssef"
     @State private var notes = ""
+
+    // Time
+    @State private var useCustomTime = false
+    @State private var customTime = Date()
 
     // Medicine
     @State private var medicineName = ""
@@ -22,13 +26,11 @@ struct AddEventView: View {
 
     @State private var isSaving = false
 
+    private static let cairo = TimeZone(identifier: "Africa/Cairo")!
+
     var body: some View {
         NavigationStack {
             Form {
-                Section("Child") {
-                    TextField("Child name", text: $childName)
-                }
-
                 Section("Event Type") {
                     Picker("Type", selection: $selectedType) {
                         ForEach(EventType.allCases, id: \.self) { type in
@@ -36,6 +38,23 @@ struct AddEventView: View {
                         }
                     }
                     .pickerStyle(.segmented)
+                }
+
+                Section("Time (Cairo)") {
+                    Picker("When", selection: $useCustomTime) {
+                        Text("Now").tag(false)
+                        Text("Custom").tag(true)
+                    }
+                    .pickerStyle(.segmented)
+
+                    if useCustomTime {
+                        DatePicker(
+                            "Date & Time",
+                            selection: $customTime,
+                            displayedComponents: [.date, .hourAndMinute]
+                        )
+                        .environment(\.timeZone, Self.cairo)
+                    }
                 }
 
                 payloadSection
@@ -53,7 +72,7 @@ struct AddEventView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") { save() }
-                        .disabled(childName.isEmpty || isSaving)
+                        .disabled(isSaving)
                 }
             }
             .overlay {
@@ -71,7 +90,7 @@ struct AddEventView: View {
                 TextField("Dose", text: $doseMg)
                     .keyboardType(.decimalPad)
                 Picker("Unit", selection: $unit) {
-                    ForEach(["mg", "ml", "tablet"], id: \.self) { Text($0) }
+                    ForEach(["mg", "ml", "tablet", "cm"], id: \.self) { Text($0) }
                 }
             }
         case .temperature:
@@ -91,6 +110,10 @@ struct AddEventView: View {
         }
     }
 
+    private var occurredAt: Date {
+        useCustomTime ? customTime : Date()
+    }
+
     private func save() {
         isSaving = true
         Task {
@@ -98,7 +121,8 @@ struct AddEventView: View {
                 type: selectedType,
                 childName: childName,
                 notes: notes.isEmpty ? nil : notes,
-                payload: buildPayload()
+                payload: buildPayload(),
+                occurredAt: occurredAt
             )
             isSaving = false
             dismiss()

@@ -12,6 +12,7 @@ class EventViewModel: ObservableObject {
         errorMessage = nil
         do {
             events = try await APIService.shared.fetchEvents()
+            events.sort { $0.occurredAt > $1.occurredAt }
         } catch {
             errorMessage = "Failed to load events: \(error.localizedDescription)"
         }
@@ -22,7 +23,8 @@ class EventViewModel: ObservableObject {
         type: EventType,
         childName: String,
         notes: String?,
-        payload: [String: Any]
+        payload: [String: Any],
+        occurredAt: Date = Date()
     ) async {
         let encodablePayload = payload.compactMapValues { value -> CreateEventRequest.PayloadValue? in
             if let s = value as? String { return .string(s) }
@@ -36,12 +38,13 @@ class EventViewModel: ObservableObject {
             childName: childName,
             notes: notes,
             payload: encodablePayload,
-            occurredAt: Date()
+            occurredAt: occurredAt
         )
 
         do {
             let newEvent = try await APIService.shared.logEvent(request)
-            events.insert(newEvent, at: 0)
+            events.append(newEvent)
+            events.sort { $0.occurredAt > $1.occurredAt }
         } catch {
             errorMessage = "Failed to log event: \(error.localizedDescription)"
         }

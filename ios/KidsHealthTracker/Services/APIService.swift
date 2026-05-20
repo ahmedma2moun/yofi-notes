@@ -26,7 +26,7 @@ actor APIService {
     static let shared = APIService()
 
     // Replace with your server's IP/hostname before building
-    private let baseURL = URL(string: "http://localhost:3000")!
+    private let baseURL = URL(string: "https://yofi-notes-guq8.vercel.app")!
 
     func logEvent(_ event: CreateEventRequest) async throws -> HealthEvent {
         let url = baseURL.appendingPathComponent("events")
