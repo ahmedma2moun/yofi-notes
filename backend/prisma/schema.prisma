@@ -7,14 +7,68 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ── Original private-app model (unchanged) ──────────────────────────────────
+
 model HealthEvent {
   id         String    @id @default(cuid())
   type       EventType
-  childName  String
+  childId    String?
+  childName  String    @default("")
   notes      String?
   occurredAt DateTime  @default(now())
   createdAt  DateTime  @default(now())
   payload    Json?
+
+  child Child? @relation(fields: [childId], references: [id], onDelete: Cascade)
+}
+
+// ── Public-app models ────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+
+  ownedChildren  Child[]      @relation("ChildOwner")
+  sharedChildren ChildShare[]
+}
+
+model Child {
+  id        String    @id @default(cuid())
+  name      String
+  birthDate DateTime?
+  createdAt DateTime  @default(now())
+  ownerId   String
+
+  owner   User          @relation("ChildOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  shares  ChildShare[]
+  invites ChildInvite[]
+  events  HealthEvent[]
+}
+
+model ChildShare {
+  id        String   @id @default(cuid())
+  childId   String
+  userId    String
+  createdAt DateTime @default(now())
+
+  child Child @relation(fields: [childId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([childId, userId])
+}
+
+model ChildInvite {
+  id        String    @id @default(cuid())
+  code      String    @unique
+  childId   String
+  used      Boolean   @default(false)
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  child Child @relation(fields: [childId], references: [id], onDelete: Cascade)
 }
 
 enum EventType {
