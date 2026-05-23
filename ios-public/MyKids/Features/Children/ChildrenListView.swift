@@ -145,7 +145,7 @@ struct ChildRowView: View {
                     .frame(width: 48, height: 48)
                 Text(child.name.prefix(1).uppercased())
                     .font(.title2.bold())
-                    .foregroundStyle(.accentColor)
+                    .foregroundStyle(Color.accentColor)
             }
 
             VStack(alignment: .leading, spacing: 3) {

@@ -3,9 +3,9 @@ import Observation
 
 @Observable
 final class AppSession {
-    enum Mode: Equatable { case guest, loggedIn }
+    enum Mode: Equatable { case welcome, guest, loggedIn }
 
-    private(set) var mode: Mode = .guest
+    private(set) var mode: Mode = .welcome
     private(set) var currentUser: User?
     private(set) var token: String?
 
@@ -22,25 +22,34 @@ final class AppSession {
     func signOut() {
         token = nil
         currentUser = nil
-        mode = .guest
+        mode = .welcome
         clearPersisted()
     }
 
     func continueAsGuest() {
         mode = .guest
+        UserDefaults.standard.set(true, forKey: "mykids_guest_chosen")
     }
 
     // ── Persistence (Keychain-lite via UserDefaults; swap for Keychain in prod) ──
 
     func restoreSession() {
-        guard
-            let token = UserDefaults.standard.string(forKey: "mykids_token"),
-            let data  = UserDefaults.standard.data(forKey: "mykids_user"),
-            let user  = try? JSONDecoder().decode(User.self, from: data)
-        else { return }
-        self.token = token
-        self.currentUser = user
-        self.mode = .loggedIn
+        // Returning logged-in user
+        if let token = UserDefaults.standard.string(forKey: "mykids_token"),
+           let data  = UserDefaults.standard.data(forKey: "mykids_user"),
+           let user  = try? JSONDecoder().decode(User.self, from: data) {
+            self.token = token
+            self.currentUser = user
+            self.mode = .loggedIn
+            return
+        }
+        // Returning guest user
+        if UserDefaults.standard.bool(forKey: "mykids_guest_chosen") {
+            self.mode = .guest
+            return
+        }
+        // First launch — show welcome screen
+        self.mode = .welcome
     }
 
     private func persist(token: String, user: User) {

@@ -4,10 +4,10 @@ struct RootView: View {
     @Environment(AppSession.self) private var session
 
     var body: some View {
-        if session.isLoggedIn || session.mode == .guest {
-            mainTabView
-        } else {
-            WelcomeView()
+        switch session.mode {
+        case .welcome:  WelcomeView()
+        case .guest:    mainTabView
+        case .loggedIn: mainTabView
         }
     }
 
