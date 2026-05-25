@@ -11,6 +11,9 @@ struct SettingsView: View {
                     Section("Account") {
                         LabeledContent("Name", value: user.name ?? "—")
                         LabeledContent("Email", value: user.email)
+                        NavigationLink("Change Password") {
+                            ChangePasswordView()
+                        }
                     }
 
                     Section {

@@ -30,4 +30,13 @@ actor AuthAPIService {
         let res: AuthResponse = try await APIClient.shared.request("POST", path: "auth/login", body: body)
         return (res.token, res.user)
     }
+
+    func changePassword(currentPassword: String, newPassword: String, token: String) async throws {
+        struct Body: Encodable { let currentPassword: String; let newPassword: String }
+        try await APIClient.shared.requestEmpty(
+            "PATCH", path: "auth/password",
+            body: Body(currentPassword: currentPassword, newPassword: newPassword),
+            token: token
+        )
+    }
 }

@@ -73,18 +73,22 @@ struct ChildrenListView: View {
                     ChildRowView(child: child)
                 }
                 .swipeActions(edge: .leading) {
-                    Button {
-                        editingChild = child
-                    } label: {
-                        Label("Edit", systemImage: "pencil")
+                    if child.ownerId == session.currentUser?.id {
+                        Button {
+                            editingChild = child
+                        } label: {
+                            Label("Edit", systemImage: "pencil")
+                        }
+                        .tint(.mkPrimary)
                     }
-                    .tint(.mkPrimary)
                 }
                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                    Button(role: .destructive) {
-                        childToDelete = child
-                    } label: {
-                        Label("Delete", systemImage: "trash")
+                    if child.ownerId == session.currentUser?.id {
+                        Button(role: .destructive) {
+                            childToDelete = child
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
                     }
                 }
             }
