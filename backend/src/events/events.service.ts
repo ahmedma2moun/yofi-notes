@@ -22,6 +22,7 @@ export class EventsService {
 
   async findAll() {
     return this.prisma.healthEvent.findMany({
+      where: { childId: null },
       orderBy: { occurredAt: 'desc' },
     });
   }
