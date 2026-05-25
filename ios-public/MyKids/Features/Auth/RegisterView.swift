@@ -8,9 +8,10 @@ struct RegisterView: View {
     @State private var email           = ""
     @State private var password        = ""
     @State private var confirmPassword = ""
-    @State private var isLoading       = false
-    @State private var submitAttempted = false
+    @State private var isLoading        = false
+    @State private var submitAttempted  = false
     @State private var serverError: String?
+    @State private var agreedToPrivacy  = false
 
     // Guest data sync
     @State private var localChildCount  = 0
@@ -57,19 +58,37 @@ struct RegisterView: View {
                 }
 
                 Section {
-                    if submitAttempted {
-                        ForEach(validationErrors, id: \.self) { msg in
-                            Text(msg)
-                                .font(.caption)
-                                .foregroundStyle(.red)
+                    Toggle(isOn: $agreedToPrivacy) {
+                        HStack(spacing: 4) {
+                            Text("I have read and agree to the")
+                                .font(.subheadline)
+                                .foregroundStyle(Color.mkTextSecondary)
+                            Link("Privacy Policy",
+                                 destination: URL(string: "https://yofi-notes-guq8.vercel.app/privacy")!)
+                                .font(.subheadline)
+                                .foregroundStyle(Color.mkPrimary)
                         }
                     }
-                    if let serverError {
-                        Text(serverError)
-                            .font(.caption)
-                            .foregroundStyle(.red)
-                    }
+                    .tint(Color.mkPrimary)
+                }
 
+                let displayedErrors: [String] = (submitAttempted ? validationErrors : [])
+                    + (serverError.map { [$0] } ?? [])
+
+                if !displayedErrors.isEmpty {
+                    Section {
+                        VStack(alignment: .leading, spacing: 8) {
+                            ForEach(displayedErrors, id: \.self) { msg in
+                                Label(msg, systemImage: "exclamationmark.circle.fill")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.red)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+
+                Section {
                     Button(action: register) {
                         if isLoading {
                             ProgressView().frame(maxWidth: .infinity)
@@ -96,11 +115,26 @@ struct RegisterView: View {
         }
     }
 
+    private func friendlyMessage(for error: Error) -> String {
+        if let urlError = error as? URLError {
+            switch urlError.code {
+            case .notConnectedToInternet, .networkConnectionLost:
+                return "No internet connection. Please try again."
+            case .timedOut:
+                return "The request timed out. Please try again."
+            default:
+                return "Could not reach the server. Please try again."
+            }
+        }
+        return error.localizedDescription
+    }
+
     private var validationErrors: [String] {
         var errors: [String] = []
         if email.isEmpty || !email.contains("@") { errors.append("Enter a valid email address.") }
         if password.count < 6 { errors.append("Password must be at least 6 characters.") }
         if !confirmPassword.isEmpty && password != confirmPassword { errors.append("Passwords do not match.") }
+        if !agreedToPrivacy { errors.append("Please agree to the Privacy Policy to continue.") }
         return errors
     }
 
@@ -122,7 +156,7 @@ struct RegisterView: View {
                 session.signIn(token: token, user: user)
                 dismiss()
             } catch {
-                serverError = error.localizedDescription
+                serverError = friendlyMessage(for: error)
             }
             isLoading = false
         }

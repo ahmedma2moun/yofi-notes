@@ -7,9 +7,15 @@ enum APIError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .httpError(let code, let msg): return "Server error \(code): \(msg)"
-        case .decodingError(let err):       return "Decode error: \(err.localizedDescription)"
-        case .noToken:                      return "Not authenticated"
+        case .httpError(let code, _):
+            switch code {
+            case 400: return "Please check your details and try again."
+            case 401: return "Incorrect email or password."
+            case 409: return "An account with this email already exists."
+            default:  return "Something went wrong. Please try again."
+            }
+        case .decodingError: return "Something went wrong. Please try again."
+        case .noToken:       return "You're not signed in. Please log in again."
         }
     }
 }

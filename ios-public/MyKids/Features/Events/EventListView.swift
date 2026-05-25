@@ -72,7 +72,7 @@ struct EventListView: View {
                 }
                 .accessibilityLabel("Log event")
             }
-            if session.isLoggedIn {
+            if session.isLoggedIn && child.ownerId == session.currentUser?.id {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button { showShare = true } label: {
                         Image(systemName: "square.and.arrow.up")

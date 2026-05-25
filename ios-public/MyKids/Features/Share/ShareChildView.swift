@@ -102,9 +102,10 @@ struct ShareChildView: View {
 
                 if let errorMessage {
                     Section {
-                        Text(errorMessage)
-                            .font(.caption)
+                        Label(errorMessage, systemImage: "exclamationmark.circle.fill")
+                            .font(.subheadline)
                             .foregroundStyle(.red)
+                            .padding(.vertical, 4)
                     }
                 }
             }
@@ -126,6 +127,20 @@ struct ShareChildView: View {
         return String(clean[..<mid]) + " " + String(clean[mid...])
     }
 
+    private func friendlyMessage(for error: Error) -> String {
+        if let urlError = error as? URLError {
+            switch urlError.code {
+            case .notConnectedToInternet, .networkConnectionLost:
+                return "No internet connection. Please try again."
+            case .timedOut:
+                return "The request timed out. Please try again."
+            default:
+                return "Could not reach the server. Please try again."
+            }
+        }
+        return error.localizedDescription
+    }
+
     private func generateInvite() {
         isGenerating = true
         errorMessage = nil
@@ -136,7 +151,7 @@ struct ShareChildView: View {
                     childId: child.id, token: token
                 )
             } catch {
-                errorMessage = error.localizedDescription
+                errorMessage = friendlyMessage(for: error)
             }
             isGenerating = false
         }

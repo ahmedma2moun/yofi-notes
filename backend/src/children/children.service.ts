@@ -64,7 +64,7 @@ export class ChildrenService {
   // ── Sharing ────────────────────────────────────────────────────────────────
 
   async generateInvite(userId: string, childId: string) {
-    await this.findAccessibleChild(userId, childId);
+    await this.requireOwner(userId, childId);
     const code = this.randomCode(8);
     const invite = await this.prisma.childInvite.create({
       data: {
