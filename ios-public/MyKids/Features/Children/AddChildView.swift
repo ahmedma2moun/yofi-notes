@@ -14,9 +14,9 @@ struct AddChildView: View {
     init(viewModel: ChildrenViewModel, editingChild: Child? = nil) {
         _viewModel = ObservedObject(wrappedValue: viewModel)
         self.editingChild = editingChild
-        _name = State(initialValue: editingChild?.name ?? "")
+        _name        = State(initialValue: editingChild?.name ?? "")
         _hasBirthDate = State(initialValue: editingChild?.birthDate != nil)
-        _birthDate = State(initialValue: editingChild?.birthDate ?? Date())
+        _birthDate   = State(initialValue: editingChild?.birthDate ?? Date())
     }
 
     var body: some View {
@@ -27,7 +27,8 @@ struct AddChildView: View {
                 }
 
                 Section {
-                    Toggle("Add Birth Date", isOn: $hasBirthDate)
+                    Toggle("Add Birth Date", isOn: $hasBirthDate.animation(.easeInOut(duration: 0.2)))
+
                     if hasBirthDate {
                         DatePicker(
                             "Birth Date",
@@ -35,6 +36,7 @@ struct AddChildView: View {
                             in: ...Date(),
                             displayedComponents: .date
                         )
+                        .transition(.opacity.combined(with: .move(edge: .top)))
                     }
                 }
             }
@@ -45,8 +47,12 @@ struct AddChildView: View {
                     Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save", action: save)
-                        .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || isSaving)
+                    Button {
+                        save()
+                    } label: {
+                        Text("Save").fontWeight(.bold)
+                    }
+                    .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || isSaving)
                 }
             }
             .overlay { if isSaving { ProgressView() } }

@@ -24,7 +24,7 @@ struct ChildrenListView: View {
                     childList
                 }
             }
-            .navigationTitle("My Children")
+            .navigationTitle("My Kids")
             .toolbar { toolbarItems }
             .sheet(isPresented: $showAddChild) {
                 AddChildView(viewModel: viewModel)
@@ -72,18 +72,20 @@ struct ChildrenListView: View {
                 } label: {
                     ChildRowView(child: child)
                 }
+                .swipeActions(edge: .leading) {
+                    Button {
+                        editingChild = child
+                    } label: {
+                        Label("Edit", systemImage: "pencil")
+                    }
+                    .tint(.mkPrimary)
+                }
                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                     Button(role: .destructive) {
                         childToDelete = child
                     } label: {
                         Label("Delete", systemImage: "trash")
                     }
-                    Button {
-                        editingChild = child
-                    } label: {
-                        Label("Edit", systemImage: "pencil")
-                    }
-                    .tint(.blue)
                 }
             }
         }
@@ -94,17 +96,20 @@ struct ChildrenListView: View {
         VStack(spacing: 16) {
             Image(systemName: "figure.2.and.child.holdinghands")
                 .font(.system(size: 60))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.mkTextSecondary)
                 .symbolRenderingMode(.hierarchical)
             Text("No Children Yet")
                 .font(.headline)
             Text("Tap + to add your first child")
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.mkTextSecondary)
 
             if session.isLoggedIn {
                 Button("Accept Invite") { showInviteAccept = true }
-                    .buttonStyle(.bordered)
+                    .foregroundStyle(Color.mkPrimary)
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 24)
+                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.mkPrimary, lineWidth: 1.5))
                     .padding(.top, 8)
             }
         }
@@ -117,12 +122,14 @@ struct ChildrenListView: View {
             Button { showAddChild = true } label: {
                 Image(systemName: "plus")
             }
+            .accessibilityLabel("Add child")
         }
         if session.isLoggedIn {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button { showInviteAccept = true } label: {
                     Image(systemName: "person.badge.plus")
                 }
+                .accessibilityLabel("Accept invite")
             }
         }
     }
@@ -141,20 +148,20 @@ struct ChildRowView: View {
         HStack(spacing: 14) {
             ZStack {
                 Circle()
-                    .fill(Color.accentColor.opacity(0.15))
+                    .fill(Color.mkPrimaryLight)
                     .frame(width: 48, height: 48)
                 Text(child.name.prefix(1).uppercased())
                     .font(.title2.bold())
-                    .foregroundStyle(Color.accentColor)
+                    .foregroundStyle(Color.mkPrimary)
             }
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(child.name)
                     .font(.headline)
                 if let bd = child.birthDate {
-                    Text(Self.dateFormatter.string(from: bd))
+                    Text("Born \(Self.dateFormatter.string(from: bd))")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.mkTextSecondary)
                 }
             }
         }

@@ -16,42 +16,55 @@ struct ShareChildView: View {
         NavigationStack {
             List {
                 Section {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Share \(child.name)'s profile with another parent or caregiver. They'll be able to view and add health events.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding(.vertical, 4)
+                    Text("Share \(child.name)'s profile with another parent or caregiver. They'll be able to view and add health events.")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.mkTextSecondary)
+                        .padding(.vertical, 4)
                 }
 
-                Section("Invite Code") {
-                    if let code = inviteCode {
-                        VStack(spacing: 12) {
-                            Text(code)
-                                .font(.system(.title, design: .monospaced).bold())
-                                .tracking(4)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color(.secondarySystemBackground))
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                if let code = inviteCode {
+                    Section {
+                        VStack(spacing: 16) {
+                            VStack(spacing: 6) {
+                                Text(formatted(code: code))
+                                    .font(.system(size: 28, weight: .bold, design: .monospaced))
+                                    .tracking(4)
+                                    .frame(maxWidth: .infinity)
 
-                            if let expiry = inviteExpiry {
-                                Text("Expires \(expiry.formatted(date: .abbreviated, time: .omitted))")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                if let expiry = inviteExpiry {
+                                    Text("Expires \(expiry.formatted(date: .abbreviated, time: .omitted))")
+                                        .font(.caption)
+                                        .foregroundStyle(Color.mkTextSecondary)
+                                }
                             }
+                            .padding(.vertical, 18)
+                            .frame(maxWidth: .infinity)
+                            .background(Color.mkSurfaceSecondary)
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
 
                             Button {
                                 UIPasteboard.general.string = code
-                                withAnimation { copied = true }
+                                withAnimation(.spring(response: 0.35, dampingFraction: 0.6)) {
+                                    copied = true
+                                }
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                                     withAnimation { copied = false }
                                 }
                             } label: {
-                                Label(copied ? "Copied!" : "Copy Code", systemImage: copied ? "checkmark" : "doc.on.doc")
-                                    .frame(maxWidth: .infinity)
+                                Label(
+                                    copied ? "Copied!" : "Copy Code",
+                                    systemImage: copied ? "checkmark" : "doc.on.doc"
+                                )
+                                .frame(maxWidth: .infinity)
+                                .scaleEffect(copied ? 1.05 : 1.0)
                             }
-                            .buttonStyle(.bordered)
+                            .foregroundStyle(copied ? Color.mkSuccess : Color.mkPrimary)
+                            .padding(.vertical, 12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 14)
+                                    .stroke(copied ? Color.mkSuccess : Color.mkPrimary, lineWidth: 1.5)
+                            )
+                            .accessibilityLabel(copied ? "Copied" : "Copy code")
 
                             ShareLink(
                                 item: "Join \(child.name)'s health tracker! Use invite code: \(code)",
@@ -64,7 +77,9 @@ struct ShareChildView: View {
                             .buttonStyle(.borderedProminent)
                         }
                         .padding(.vertical, 4)
-                    } else {
+                    }
+                } else {
+                    Section {
                         Button(action: generateInvite) {
                             if isGenerating {
                                 ProgressView()
@@ -74,32 +89,41 @@ struct ShareChildView: View {
                                     .frame(maxWidth: .infinity)
                             }
                         }
+                        .buttonStyle(.borderedProminent)
                         .disabled(isGenerating)
+                    }
+
+                    Section {
+                        Text("Each code is single-use and expires in 7 days.")
+                            .font(.caption)
+                            .foregroundStyle(Color.mkTextSecondary)
                     }
                 }
 
                 if let errorMessage {
                     Section {
                         Text(errorMessage)
+                            .font(.caption)
                             .foregroundStyle(.red)
-                            .font(.subheadline)
                     }
                 }
-
-                Section {
-                    Text("Each invite code is single-use and expires in 7 days. Shared users can add events but cannot delete the child or manage sharing.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
             }
-            .navigationTitle("Share Child")
+            .navigationTitle("Share \(child.name)")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
+                        .fontWeight(.bold)
                 }
             }
         }
+    }
+
+    private func formatted(code: String) -> String {
+        let clean = code.replacingOccurrences(of: " ", with: "")
+        guard clean.count >= 4 else { return clean }
+        let mid = clean.index(clean.startIndex, offsetBy: min(4, clean.count))
+        return String(clean[..<mid]) + " " + String(clean[mid...])
     }
 
     private func generateInvite() {
@@ -118,4 +142,3 @@ struct ShareChildView: View {
         }
     }
 }
-

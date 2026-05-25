@@ -24,15 +24,13 @@ struct LoginView: View {
                         .textContentType(.password)
                 }
 
-                if let errorMessage {
-                    Section {
-                        Text(errorMessage)
-                            .foregroundStyle(.red)
-                            .font(.subheadline)
-                    }
-                }
-
                 Section {
+                    if let errorMessage {
+                        Text(errorMessage)
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    }
+
                     Button(action: login) {
                         if isLoading {
                             ProgressView()
@@ -60,6 +58,7 @@ struct LoginView: View {
                         .foregroundStyle(.secondary)
                     Button("Create one") { showRegister = true }
                         .font(.subheadline)
+                        .foregroundStyle(Color.mkPrimary)
                 }
                 .padding(.bottom, 20)
             }

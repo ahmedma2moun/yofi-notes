@@ -64,18 +64,20 @@ struct EventListView: View {
             }
         }
         .navigationTitle(child.name)
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button { showAddEvent = true } label: {
                     Image(systemName: "plus")
                 }
+                .accessibilityLabel("Log event")
             }
             if session.isLoggedIn {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button { showShare = true } label: {
-                        Image(systemName: "person.badge.plus")
+                        Image(systemName: "square.and.arrow.up")
                     }
+                    .accessibilityLabel("Share \(child.name)")
                 }
             }
         }
@@ -119,7 +121,9 @@ struct EventListView: View {
             HStack(spacing: 8) {
                 ForEach(EventType.allCases, id: \.self) { type in
                     FilterChip(label: type.displayName, isSelected: selectedType == type) {
-                        selectedType = type
+                        withAnimation(.spring(response: 0.3)) {
+                            selectedType = type
+                        }
                     }
                 }
             }
@@ -133,12 +137,13 @@ struct EventListView: View {
         VStack(spacing: 12) {
             Image(systemName: "tray")
                 .font(.system(size: 48))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.mkTextTertiary)
+                .symbolRenderingMode(.hierarchical)
             Text("No Events")
                 .font(.headline)
             Text("No \(selectedType.displayName) events yet")
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.mkTextSecondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -160,11 +165,13 @@ struct EventListView: View {
                                     }
                                 } label: {
                                     Image(systemName: "ellipsis")
-                                        .foregroundStyle(.secondary)
+                                        .foregroundStyle(Color.mkTextSecondary)
                                         .padding(.vertical, 8)
                                         .padding(.leading, 8)
                                 }
+                                .accessibilityLabel("Event options")
                             }
+                            .accessibilityElement(children: .combine)
                         }
                     }
                 } header: {
@@ -174,9 +181,11 @@ struct EventListView: View {
                             .foregroundStyle(.primary)
                             .textCase(nil)
                         Spacer()
-                        Image(systemName: expandedDays.contains(group.dayKey) ? "chevron.up" : "chevron.down")
+                        Image(systemName: "chevron.down")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color.mkTextSecondary)
+                            .rotationEffect(.degrees(expandedDays.contains(group.dayKey) ? 0 : -90))
+                            .animation(.easeInOut(duration: 0.2), value: expandedDays)
                     }
                     .contentShape(Rectangle())
                     .onTapGesture {
@@ -206,8 +215,8 @@ private struct FilterChip: View {
                 .font(.subheadline.weight(.medium))
                 .padding(.horizontal, 14)
                 .padding(.vertical, 7)
-                .background(isSelected ? Color.accentColor : Color(.secondarySystemBackground))
-                .foregroundStyle(isSelected ? Color.white : Color.primary)
+                .background(isSelected ? Color.mkPrimary : Color.mkSurfaceSecondary)
+                .foregroundStyle(isSelected ? Color.white : Color.mkTextPrimary)
                 .clipShape(Capsule())
         }
         .buttonStyle(.plain)
@@ -218,8 +227,8 @@ struct EventRowView: View {
     let event: HealthEvent
     @State private var expanded = false
 
-    private static let dateFormatter: DateFormatter = {
-        let f = DateFormatter(); f.dateStyle = .medium; f.timeStyle = .short; return f
+    private static let timeFormatter: DateFormatter = {
+        let f = DateFormatter(); f.timeStyle = .short; f.dateStyle = .none; return f
     }()
 
     var body: some View {
@@ -229,39 +238,48 @@ struct EventRowView: View {
                 withAnimation(.easeInOut(duration: 0.2)) { expanded.toggle() }
             } label: {
                 HStack(spacing: 12) {
-                    Image(systemName: event.type.systemImage)
-                        .font(.title2)
-                        .foregroundStyle(iconColor)
-                        .frame(width: 36)
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 9)
+                            .fill(iconColor.opacity(0.12))
+                            .frame(width: 36, height: 36)
+                        Image(systemName: event.type.systemImage)
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundStyle(iconColor)
+                    }
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text(payloadSummary)
                             .font(.headline)
-                            .foregroundStyle(.primary)
-                        Text(Self.dateFormatter.string(from: event.occurredAt))
+                            .foregroundStyle(Color.mkTextPrimary)
+                        Text(Self.timeFormatter.string(from: event.occurredAt))
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color.mkTextSecondary)
                     }
 
                     Spacer()
 
                     if event.notes != nil {
-                        Image(systemName: expanded ? "chevron.up" : "chevron.down")
+                        Image(systemName: "chevron.down")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color.mkTextSecondary)
+                            .rotationEffect(.degrees(expanded ? 180 : 0))
+                            .animation(.easeInOut(duration: 0.2), value: expanded)
                     }
                 }
                 .padding(.vertical, 4)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("\(event.type.displayName), \(payloadSummary), \(Self.timeFormatter.string(from: event.occurredAt))")
 
             if expanded, let notes = event.notes {
                 Text(notes)
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .padding(.leading, 48)
+                    .foregroundStyle(Color.mkTextSecondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(10)
+                    .background(Color.mkSurfaceSecondary)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
                     .padding(.top, 6)
-                    .padding(.bottom, 4)
             }
         }
     }
@@ -290,9 +308,9 @@ struct EventRowView: View {
 
     private var iconColor: Color {
         switch event.type {
-        case .medicine:    return .blue
-        case .temperature: return .orange
-        case .custom:      return .purple
+        case .medicine:    return .mkMedicine
+        case .temperature: return .mkTemperature
+        case .custom:      return .mkCustom
         }
     }
 }

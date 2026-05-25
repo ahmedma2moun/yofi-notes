@@ -17,7 +17,8 @@ struct RootView: View {
                 .tabItem { Label("Children", systemImage: "figure.2.and.child.holdinghands") }
 
             SettingsView()
-                .tabItem { Label("Settings", systemImage: "gear") }
+                .tabItem { Label("Settings", systemImage: "gearshape") }
         }
+        .tint(.mkPrimary)
     }
 }

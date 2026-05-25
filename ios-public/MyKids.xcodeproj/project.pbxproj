@@ -33,6 +33,8 @@
 		AAAAAAAA0000000000000057 /* ShareChildView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAAAAAA0000000000000037 /* ShareChildView.swift */; };
 		AAAAAAAA0000000000000058 /* AcceptInviteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAAAAAA0000000000000038 /* AcceptInviteView.swift */; };
 		AAAAAAAA0000000000000059 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AAAAAAAA000000000000001A /* Assets.xcassets */; };
+		AAAAAAAA000000000000005B /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAAAAAA0000000000000039 /* Theme.swift */; };
+		AAAAAAAA000000000000005C /* GuestDataSyncer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAAAAAA000000000000003A /* GuestDataSyncer.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -63,6 +65,8 @@
 		AAAAAAAA0000000000000036 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		AAAAAAAA0000000000000037 /* ShareChildView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareChildView.swift; sourceTree = "<group>"; };
 		AAAAAAAA0000000000000038 /* AcceptInviteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AcceptInviteView.swift; sourceTree = "<group>"; };
+		AAAAAAAA0000000000000039 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		AAAAAAAA000000000000003A /* GuestDataSyncer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestDataSyncer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -85,6 +89,7 @@
 				AAAAAAAA0000000000000011 /* Services */,
 				AAAAAAAA0000000000000012 /* ViewModels */,
 				AAAAAAAA0000000000000013 /* Features */,
+				AAAAAAAA000000000000001C /* Theme */,
 				AAAAAAAA000000000000001A /* Assets.xcassets */,
 				AAAAAAAA000000000000000D /* Products */,
 			);
@@ -136,6 +141,7 @@
 				AAAAAAAA000000000000002A /* AuthAPIService.swift */,
 				AAAAAAAA000000000000002B /* ChildrenAPIService.swift */,
 				AAAAAAAA000000000000002C /* EventsAPIService.swift */,
+				AAAAAAAA000000000000003A /* GuestDataSyncer.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -212,6 +218,14 @@
 				AAAAAAAA0000000000000038 /* AcceptInviteView.swift */,
 			);
 			path = Share;
+			sourceTree = "<group>";
+		};
+		AAAAAAAA000000000000001C /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				AAAAAAAA0000000000000039 /* Theme.swift */,
+			);
+			path = Theme;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -308,6 +322,8 @@
 				AAAAAAAA0000000000000056 /* SettingsView.swift in Sources */,
 				AAAAAAAA0000000000000057 /* ShareChildView.swift in Sources */,
 				AAAAAAAA0000000000000058 /* AcceptInviteView.swift in Sources */,
+				AAAAAAAA000000000000005B /* Theme.swift in Sources */,
+				AAAAAAAA000000000000005C /* GuestDataSyncer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

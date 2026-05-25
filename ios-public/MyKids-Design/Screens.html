@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MyKids — Screen Designs</title>
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; background: #f0eee9; font-family: -apple-system, system-ui, sans-serif; }
+    #root { width: 100%; height: 100vh; }
+  </style>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script type="text/babel" src="lib/design-canvas.jsx"></script>
+  <script type="text/babel" src="lib/screens.jsx"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel" data-presets="react">
+    const PHONE_W = 393;
+    const PHONE_H = 852;
+    const ICON_BIG = 360;
+
+    // Color swatch card (for design system section)
+    function Swatch({ color, name, hex, dark }) {
+      return (
+        <div style={{
+          width: 200, height: 180, background: '#fff', borderRadius: 14,
+          overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+        }}>
+          <div style={{ height: 110, background: color, borderBottom: '1px solid rgba(0,0,0,0.04)' }}/>
+          <div style={{ padding: '12px 14px' }}>
+            <div style={{ fontWeight: 600, fontSize: 14, color: '#1c1c1e' }}>{name}</div>
+            <div style={{ fontFamily: 'ui-monospace, "SF Mono", monospace', fontSize: 12, color: '#8e8e93', marginTop: 3 }}>{hex}</div>
+          </div>
+        </div>
+      );
+    }
+
+    function TypeSample({ name, size, weight, sample = 'The quick fox jumps' }) {
+      return (
+        <div style={{
+          width: 420, background: '#fff', borderRadius: 14, padding: '18px 22px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+        }}>
+          <div style={{ fontSize: 12, color: '#8e8e93', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 8 }}>
+            {name} · {size}pt · {weight}
+          </div>
+          <div style={{ fontSize: size, fontWeight: weight, color: '#1c1c1e', lineHeight: 1.2 }}>{sample}</div>
+        </div>
+      );
+    }
+
+    function App() {
+      return (
+        <DesignCanvas>
+          <DCSection id="meta" title="MyKids — Design Handoff" subtitle="iOS 17+ · iPhone first · Light & Dark · All screens from DESIGN_SPEC.md">
+            <DCArtboard id="intro" label="Overview" width={520} height={360}>
+              <div style={{ padding: 32, height: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: 14, fontFamily: '-apple-system, system-ui', background: '#fff' }}>
+                <div style={{ fontSize: 26, fontWeight: 700, color: '#1c1c1e' }}>MyKids</div>
+                <div style={{ fontSize: 14, color: '#8e8e93', lineHeight: 1.45 }}>
+                  A child-health event tracker for parents. Log medicine doses, temperature readings, and custom health events for each child. Works as guest (on-device) or signed-in (cloud sync + co-parent sharing).
+                </div>
+                <div style={{ borderTop: '1px solid #eee', paddingTop: 14, fontSize: 13, color: '#3a3a3c', lineHeight: 1.6 }}>
+                  <b>Tone:</b> warm, calm, trustworthy — parents use this at 2 AM with a sick child.<br/>
+                  <b>Visual:</b> soft rounded shapes (16pt cards), gentle palette, generous space.<br/>
+                  <b>Icons:</b> SF Symbols throughout — see <code>INSTRUCTIONS.md</code> for mapping.
+                </div>
+              </div>
+            </DCArtboard>
+            <DCArtboard id="appicon" label="App Icon · 1024×1024" width={ICON_BIG} height={ICON_BIG}>
+              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff' }}>
+                <AppIconPreview size={ICON_BIG - 40}/>
+              </div>
+            </DCArtboard>
+            <DCArtboard id="appicon-sizes" label="App Icon at iOS sizes" width={ICON_BIG} height={ICON_BIG}>
+              <div style={{ width: '100%', height: '100%', background: '#fff', padding: 24, boxSizing: 'border-box', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 22 }}>
+                {[180, 120, 87, 60, 40].map(s => (
+                  <div key={s} style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                    <AppIconPreview size={s}/>
+                    <div style={{ fontFamily: 'ui-monospace, monospace', fontSize: 12, color: '#666' }}>
+                      {s}×{s} — {s === 180 ? '60pt @3x' : s === 120 ? '60pt @2x' : s === 87 ? '29pt @3x (Settings)' : s === 60 ? '20pt @3x (Notif)' : '40pt @1x (Spotlight)'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </DCArtboard>
+          </DCSection>
+
+          <DCSection id="design-system" title="Design System" subtitle="Tokens used across every screen">
+            <DCArtboard id="palette" label="Color Palette" width={680} height={460}>
+              <div style={{ padding: 24, background: '#f7f6f3', height: '100%', boxSizing: 'border-box' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 200px)', gap: 14 }}>
+                  <Swatch color="#4A90D9" name="Primary" hex="#4A90D9"/>
+                  <Swatch color="#EBF4FF" name="Primary Light" hex="#EBF4FF"/>
+                  <Swatch color="#1C1C1E" name="Text Primary" hex="#1C1C1E"/>
+                  <Swatch color="#8E8E93" name="Text Secondary" hex="#8E8E93"/>
+                  <Swatch color="#F2F2F7" name="Surface Sec." hex="#F2F2F7"/>
+                  <Swatch color="#FF3B30" name="Destructive" hex="#FF3B30"/>
+                  <Swatch color="#007AFF" name="Medicine" hex="#007AFF"/>
+                  <Swatch color="#FF9500" name="Temperature" hex="#FF9500"/>
+                  <Swatch color="#AF52DE" name="Custom" hex="#AF52DE"/>
+                </div>
+              </div>
+            </DCArtboard>
+            <DCArtboard id="typography" label="Typography" width={480} height={620}>
+              <div style={{ padding: 22, background: '#f7f6f3', height: '100%', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <TypeSample name="Large Title" size={34} weight={700} sample="MyKids"/>
+                <TypeSample name="Title" size={28} weight={700} sample="Children"/>
+                <TypeSample name="Headline" size={17} weight={600} sample="Adam — born March 5, 2021"/>
+                <TypeSample name="Body" size={17} weight={400} sample="Track your children's health"/>
+                <TypeSample name="Subheadline" size={15} weight={400} sample="Yesterday at 2:30 PM"/>
+                <TypeSample name="Caption" size={13} weight={400} sample="Expires May 30, 2026"/>
+              </div>
+            </DCArtboard>
+          </DCSection>
+
+          <DCSection id="onboarding" title="Onboarding & Auth" subtitle="Welcome → Sign In or Register, or continue as guest">
+            <DCArtboard id="welcome" label="01 · Welcome" width={PHONE_W} height={PHONE_H}>
+              <WelcomeScreen />
+            </DCArtboard>
+            <DCArtboard id="login" label="02 · Sign In" width={PHONE_W} height={PHONE_H}>
+              <LoginScreen />
+            </DCArtboard>
+            <DCArtboard id="register" label="03 · Create Account" width={PHONE_W} height={PHONE_H}>
+              <RegisterScreen />
+            </DCArtboard>
+          </DCSection>
+
+          <DCSection id="children" title="Children" subtitle="List, empty state, and Add/Edit sheet">
+            <DCArtboard id="kids-filled" label="04 · Children List" width={PHONE_W} height={PHONE_H}>
+              <ChildrenListFilled />
+            </DCArtboard>
+            <DCArtboard id="kids-empty" label="05 · Children — Empty" width={PHONE_W} height={PHONE_H}>
+              <ChildrenListEmpty />
+            </DCArtboard>
+            <DCArtboard id="add-child" label="06 · Add / Edit Child" width={PHONE_W} height={PHONE_H}>
+              <AddChildScreen />
+            </DCArtboard>
+          </DCSection>
+
+          <DCSection id="events" title="Events" subtitle="Per-child timeline with day sections, filter chips, and add/edit sheet">
+            <DCArtboard id="events-filled" label="07 · Event List" width={PHONE_W} height={PHONE_H}>
+              <EventListFilled />
+            </DCArtboard>
+            <DCArtboard id="events-empty" label="08 · Events — Empty" width={PHONE_W} height={PHONE_H}>
+              <EventListEmpty />
+            </DCArtboard>
+            <DCArtboard id="add-event" label="09 · Log Event (Medicine)" width={PHONE_W} height={PHONE_H}>
+              <AddEventScreen />
+            </DCArtboard>
+          </DCSection>
+
+          <DCSection id="sharing" title="Sharing" subtitle="Logged-in only — share a child profile with a co-parent">
+            <DCArtboard id="share-before" label="10 · Share — Before code" width={PHONE_W} height={PHONE_H}>
+              <ShareChildBefore />
+            </DCArtboard>
+            <DCArtboard id="share-after" label="11 · Share — After code" width={PHONE_W} height={PHONE_H}>
+              <ShareChildAfter />
+            </DCArtboard>
+            <DCArtboard id="accept-invite" label="12 · Accept Invite" width={PHONE_W} height={PHONE_H}>
+              <AcceptInviteScreen />
+            </DCArtboard>
+          </DCSection>
+
+          <DCSection id="settings" title="Settings" subtitle="Tab 2 — account, sign out, and the guest-mode upgrade path">
+            <DCArtboard id="settings-loggedin" label="13 · Settings — Signed In" width={PHONE_W} height={PHONE_H}>
+              <SettingsLoggedIn />
+            </DCArtboard>
+            <DCArtboard id="settings-guest" label="14 · Settings — Guest" width={PHONE_W} height={PHONE_H}>
+              <SettingsGuest />
+            </DCArtboard>
+          </DCSection>
+        </DesignCanvas>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

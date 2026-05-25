@@ -19,14 +19,29 @@ struct SettingsView: View {
                         } label: {
                             Label("Sign Out", systemImage: "arrow.right.square")
                         }
+                        .accessibilityLabel("Sign out")
                     }
                 } else {
                     Section("Mode") {
-                        Label("Guest Mode", systemImage: "person.slash")
-                            .foregroundStyle(.secondary)
-                        Text("Your data is stored on this device only. Create an account to sync and share.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                        HStack(spacing: 14) {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(Color.mkPrimaryLight)
+                                    .frame(width: 44, height: 44)
+                                Image(systemName: "person")
+                                    .font(.system(size: 20, weight: .medium))
+                                    .foregroundStyle(Color.mkPrimary)
+                            }
+
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text("Guest Mode")
+                                    .font(.headline)
+                                Text("Your data is stored on this device only. Sign in to sync and share with co-parents.")
+                                    .font(.caption)
+                                    .foregroundStyle(Color.mkTextSecondary)
+                            }
+                        }
+                        .padding(.vertical, 4)
                     }
 
                     Section {
@@ -44,7 +59,7 @@ struct SettingsView: View {
                 Button("Sign Out", role: .destructive) { session.signOut() }
                 Button("Cancel", role: .cancel) {}
             } message: {
-                Text("You will need to sign in again to access synced data.")
+                Text("You will need to sign in again. Local data stays on the device.")
             }
         }
     }

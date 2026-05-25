@@ -80,7 +80,7 @@ struct AddEventView: View {
         NavigationStack {
             Form {
                 Section("Event Type") {
-                    Picker("Type", selection: $selectedType) {
+                    Picker("Type", selection: $selectedType.animation(.easeInOut(duration: 0.2))) {
                         ForEach(EventType.allCases, id: \.self) { type in
                             Label(type.displayName, systemImage: type.systemImage).tag(type)
                         }
@@ -104,9 +104,11 @@ struct AddEventView: View {
                     }
                 }
 
-                payloadSection
+                Group { payloadSection }
+                    .transition(.opacity)
+                    .animation(.easeInOut(duration: 0.2), value: selectedType)
 
-                Section("Notes (optional)") {
+                Section("Notes (Optional)") {
                     TextField("Notes", text: $notes, axis: .vertical)
                         .lineLimit(3...6)
                 }
@@ -118,7 +120,12 @@ struct AddEventView: View {
                     Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save", action: save).disabled(isSaving)
+                    Button {
+                        save()
+                    } label: {
+                        Text("Save").fontWeight(.bold)
+                    }
+                    .disabled(isSaving)
                 }
             }
             .overlay { if isSaving { ProgressView() } }

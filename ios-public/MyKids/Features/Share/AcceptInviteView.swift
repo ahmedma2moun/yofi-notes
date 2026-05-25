@@ -14,12 +14,10 @@ struct AcceptInviteView: View {
         NavigationStack {
             Form {
                 Section {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Enter the invite code another parent shared with you to get access to their child's health tracker.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding(.vertical, 4)
+                    Text("Enter the invite code another parent shared with you to get access to their child's health tracker.")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.mkTextSecondary)
+                        .padding(.vertical, 4)
                 }
 
                 Section("Invite Code") {
@@ -28,19 +26,17 @@ struct AcceptInviteView: View {
                         .textInputAutocapitalization(.characters)
                         .autocorrectionDisabled()
                         .onChange(of: code) { _, new in
-                            code = new.uppercased()
+                            code = new.uppercased().replacingOccurrences(of: " ", with: "")
                         }
                 }
 
-                if let errorMessage {
-                    Section {
-                        Text(errorMessage)
-                            .foregroundStyle(.red)
-                            .font(.subheadline)
-                    }
-                }
-
                 Section {
+                    if let errorMessage {
+                        Text(errorMessage)
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    }
+
                     Button(action: accept) {
                         if isLoading {
                             ProgressView().frame(maxWidth: .infinity)
@@ -70,7 +66,7 @@ struct AcceptInviteView: View {
             do {
                 guard let token = session.token else { return }
                 let child = try await ChildrenAPIService.shared.acceptInvite(
-                    code: code.trimmingCharacters(in: .whitespaces),
+                    code: code,
                     token: token
                 )
                 onAccepted(child)

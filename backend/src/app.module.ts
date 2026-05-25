@@ -4,6 +4,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { EventsModule } from './events/events.module';
 import { AuthModule } from './auth/auth.module';
 import { ChildrenModule } from './children/children.module';
+import { PrivacyController } from './privacy/privacy.controller';
 
 @Module({
   imports: [
@@ -13,5 +14,6 @@ import { ChildrenModule } from './children/children.module';
     AuthModule,
     ChildrenModule,
   ],
+  controllers: [PrivacyController],
 })
 export class AppModule {}
